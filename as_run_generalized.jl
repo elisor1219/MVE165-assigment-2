@@ -4,9 +4,10 @@ using Gurobi
 using SparseArrays
 
 T = 150
+S = 100
 include("as_dat_large_generalized.jl")
 include("as_mod_generalized.jl")
-m, x, z = build_model()
+m, x, z = build_model(true,false)
 set_optimizer(m, Gurobi.Optimizer)
 # set_optimizer_attributes(m, "MIPGap" => 2e-2, "TimeLimit" => 3600)
 """
