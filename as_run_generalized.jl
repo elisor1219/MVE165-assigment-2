@@ -37,13 +37,23 @@ Some useful output & functions
 
 # println(solve_time(m))
 
-x_val = sparse(value.(x.data))
-z_val = sparse(value.(z))
+#x_val = sparse(value.(x.data))
+#z_val = sparse(value.(z))
 
-println("")
-println("x  = ")
-println(x_val)
-println("z = ")
-println(z_val)
+#println("")
+#println("x  = ")
+#println(x_val)
+#println("z = ")
+#println(z_val)
 
 #add_cut_to_small(m)
+x_val = value.(x)
+"""
+for i = 2:152
+        println(x_val[1,i,2])
+end
+"""
+
+for i in Components
+        println(sum(x_val[s,t,1] for s in J_set("s"), t in J_set("t")))
+end
