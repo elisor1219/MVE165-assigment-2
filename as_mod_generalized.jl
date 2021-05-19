@@ -8,38 +8,33 @@ function build_model(relax_x::Bool = false, relax_z::Bool = false)
   #c[Components, 1,..,T] - costs of new components
   #U[Components] - lives of new components
   m = Model()
-  #if relax_x
-  #  @variable(m, x[1:S,1:(T-S),Components] >= 0)
-  #else
-  #  @variable(m, x[1:S,1:(T-S),Components] >= 0, Bin)
-  #end
   if relax_x
-    @variable(m, x[J_set("s"),J_set("t"),Components] >= 0) #TODO Risken här är att J+1 inte
-                                           #fungerar att skriva, då får man
-                                           #istället skriva 1:(J[end]+1) eller
-                                           #göra om J till J = T+1. Då kan man
-                                           #skriva 1:J och 1:(J+1) istället.
+    @variable(m, x[0:T,1:(T+1),Components] >= 0)
   else
-    @variable(m, x[J_set("s"),J_set("t"),Components] >= 0, Bin)
+    @variable(m, x[0:T,1:(T+1),Components] >= 0, Bin)
   end
   if relax_z
       @variable(m, z[J] <= 1)
   else
       @variable(m, z[J] <= 1, Bin)
   end
-
   cost = @objective(m, Min,
-    sum(d[t]*z[t] for t in J) + sum(sum(c[s,t,i]*x[s,t,i] for s in J_set("s"), t in J_set("t")) for i in Components))
-    #TODO kan bli fel här då [t > s] är oklart om de går att skriva.
+    sum(d[t]*z[t] for t in J) + sum(sum(c_cost(s,t,i)*x[s,t,i] for t in 1:(T+1), s in 0:(t-1)) for i in Components) - 145)
 
   #Constraint 1b)
-  @constraint(m, [t in J], sum(x[s,t,i] for s in 1:(t-1), i in Components) <= z[t])
+  @constraint(m, [t in J, i in Components], sum(x[s,t,i] for s in 0:(t-1)) <= z[t])
 
   #Constraint 1c)
-  @constraint(m, [t in J], sum(x[s,t,i] for s = 1:(t-1),  i in Components) == sum(x[t,r,i] for r in (t+1):(T+1), i in Components ))
+  @constraint(m, [t in J, i in Components], sum(x[s,t,i] for s in 0:(t-1)) == sum(x[t,r,i] for r in (t+1):(T+1)))
 
   #Constraint 1d)
-  @constraint(m, [i = Components], sum(x[1,t,i] for t = 2:(T+2)) == 1)
+  @constraint(m, [i in Components], sum(x[0,t,i] for t = 1:(T+1)) == 1)
+
+  #ReplaceWithinLife = @constraint(m,
+  #  [i in Components, s in J_set("t") ,ell in 0:(T-U[i]); T >= U[i]],
+  #  sum(x[t,s,i] for t in (ell + 1):(ell + U[i])) >= 1)
+
+
 
   return m, x, z
   end
