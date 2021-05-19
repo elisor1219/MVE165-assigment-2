@@ -4,8 +4,8 @@ using Gurobi
 using SparseArrays
 
 T = 150
-include("as_dat_large.jl")
-include("as_mod.jl")
+include("as_dat_large_test_gen.jl")
+include("as_mod_test_gen.jl")
 m, x, z = build_model()
 set_optimizer(m, Gurobi.Optimizer)
 # set_optimizer_attributes(m, "MIPGap" => 2e-2, "TimeLimit" => 3600)
@@ -20,7 +20,7 @@ See http://www.gurobi.com/documentation/8.1/refman/parameters.html for a
 complete list of valid parameters
 """
 
-add_cut_to_small(m)
+
 #unset_binary.(x)
 #unset_binary.(z)
 optimize!(m)
@@ -44,3 +44,5 @@ println("x  = ")
 println(x_val)
 println("z = ")
 println(z_val)
+
+#add_cut_to_small(m)
